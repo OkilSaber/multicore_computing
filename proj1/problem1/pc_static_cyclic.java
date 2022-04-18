@@ -1,11 +1,9 @@
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class pc_static_cyclic {
     private static int NUM_END = 200000;
     private static int NUM_THREADS = 1;
-    private static int NUM_CYCLES = NUM_END / NUM_THREADS;
     private static int counter = 0;
     private static Object lock = new Object();
 
@@ -13,7 +11,6 @@ public class pc_static_cyclic {
         if (args.length == 2) {
             NUM_THREADS = Integer.parseInt(args[0]);
             NUM_END = Integer.parseInt(args[1]);
-            NUM_CYCLES = NUM_END / NUM_THREADS;
         }
         long startTime = System.currentTimeMillis();
         int threadId = 0;
@@ -50,10 +47,9 @@ public class pc_static_cyclic {
 
         public void run() {
             long startTime = System.currentTimeMillis();
-            int i = this.id;
             System.out.println(
-                    "Thread Running with id:" + this.id);
-            for (; i < NUM_END;) {
+                    "Thread Running with id:" + id);
+            for (int i = id; i < NUM_END; i+=NUM_THREADS) {
                 if (isPrime(i))
                     synchronized (lock) {
                         counter++;
@@ -62,7 +58,7 @@ public class pc_static_cyclic {
             }
             long endTime = System.currentTimeMillis();
             long timeDiff = endTime - startTime;
-            System.out.println("Thread#" + this.id + " Execution Time: " + timeDiff + "ms");
+            System.out.println("Thread#" + id + " Execution Time: " + timeDiff + "ms");
         }
     }
 }
