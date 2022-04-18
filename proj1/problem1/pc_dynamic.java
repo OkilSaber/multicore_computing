@@ -1,9 +1,9 @@
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class pc_static_cyclic {
+public class pc_dynamic {
     private static int NUM_END = 200000;
-    private static int NUM_THREADS = 1;
+    private static int NUM_THREADS = Runtime.getRuntime().availableProcessors();
     private static int counter = 0;
     private static Object lock = new Object();
 
