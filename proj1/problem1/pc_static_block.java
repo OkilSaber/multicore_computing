@@ -51,9 +51,7 @@ public class pc_static_block {
 
         public void run() {
             long startTime = System.currentTimeMillis();
-            System.out.println(
-                    "Thread Running with id:" + this.id + " I start at " + this.start + " and end at " + this.end);
-            for (int i = this.start; i <= this.end; i++) {
+            for (int i = start; i <= end; i++) {
                 if (isPrime(i))
                     synchronized (lock) {
                         counter++;
@@ -61,7 +59,7 @@ public class pc_static_block {
             }
             long endTime = System.currentTimeMillis();
             long timeDiff = endTime - startTime;
-            System.out.println("Thread#" + this.id + " Execution Time: " + timeDiff + "ms");
+            System.out.println("Thread#" + id + " Execution Time: " + timeDiff + "ms");
         }
     }
 }

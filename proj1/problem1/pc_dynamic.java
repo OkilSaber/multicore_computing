@@ -3,11 +3,12 @@ import java.util.concurrent.Executors;
 
 public class pc_dynamic {
     private static int NUM_END = 200000;
-    private static int NUM_THREADS = Runtime.getRuntime().availableProcessors();
+    private static int NUM_THREADS = 1;
     private static int counter = 0;
+    private static int tmp = 0;
     private static Object lock = new Object();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         if (args.length == 2) {
             NUM_THREADS = Integer.parseInt(args[0]);
             NUM_END = Integer.parseInt(args[1]);
@@ -36,6 +37,12 @@ public class pc_dynamic {
         return true;
     }
 
+    private static int getNumber() {
+        synchronized (lock) {
+            return tmp++;
+        }
+    }
+
     public static class MyThread implements Runnable {
         private int id;
 
@@ -45,9 +52,8 @@ public class pc_dynamic {
 
         public void run() {
             long startTime = System.currentTimeMillis();
-            System.out.println(
-                    "Thread Running with id:" + id);
-            for (int i = id; i < NUM_END; i+=NUM_THREADS) {
+            int i;
+            while ((i = getNumber()) < NUM_END) {
                 if (isPrime(i))
                     synchronized (lock) {
                         counter++;

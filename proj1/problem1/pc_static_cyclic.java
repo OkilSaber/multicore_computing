@@ -45,8 +45,6 @@ public class pc_static_cyclic {
 
         public void run() {
             long startTime = System.currentTimeMillis();
-            System.out.println(
-                    "Thread Running with id:" + id);
             for (int i = id; i < NUM_END; i+=NUM_THREADS) {
                 if (isPrime(i))
                     synchronized (lock) {
