@@ -1,34 +1,61 @@
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.lang.*;
 
 public class MatmultD {
   private static Scanner sc = new Scanner(System.in);
+  private static int nbThreads;
+  private static int ans[][];
+  private static int matrixA[][];
+  private static int matrixB[][];
+  private static int heightA;
+  private static int widthA;
+  private static int heightB;
+  private static int widthB;
+  private static int a = 0;
+  private static int b = 0;
+  private static int c = 0;
+  private static Object lock = new Object();
 
   public static void main(String[] args) {
-    int thread_no = 0;
     if (args.length == 1) {
-      thread_no = Integer.valueOf(args[0]);
+      nbThreads = Integer.valueOf(args[0]);
     } else {
-      thread_no = 1;
+      nbThreads = 1;
     }
 
-    int a[][] = readMatrix();
-    int b[][] = readMatrix();
-
+    heightA = sc.nextInt();
+    widthA = sc.nextInt();
+    matrixA = readMatrix(heightA, widthA);
+    heightB = sc.nextInt();
+    widthB = sc.nextInt();
+    matrixB = readMatrix(heightB, widthB);
     long startTime = System.currentTimeMillis();
-    int[][] c = multMatrix(a, b);
-    long endTime = System.currentTimeMillis();
+    long endTime;
+    if (heightA == 0) {
+      endTime = System.currentTimeMillis();
+      System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
+      return;
+    }
+    ans = new int[0][0];
+    if (widthA != heightB)
+      return;
+    ans = new int[heightA][widthB];
+    ExecutorService es = Executors.newCachedThreadPool();
+    for (int i = 0; i < nbThreads; i++) {
+      es.execute(new MyThread(i));
+    }
+    es.shutdown();
+    while (!es.isTerminated()) {
+    }
+    endTime = System.currentTimeMillis();
 
-    printMatrix(a);
-    printMatrix(b);
-    printMatrix(c);
-
-    System.out.printf("[thread_no]:%2d , [Time]:%4d ms\n", thread_no, endTime - startTime);
+    // printMatrix(ans);
+    System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
   }
 
-  public static int[][] readMatrix() {
-    int rows = sc.nextInt();
-    int cols = sc.nextInt();
+  public static int[][] readMatrix(int rows, int cols) {
     int[][] result = new int[rows][cols];
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
@@ -54,36 +81,42 @@ public class MatmultD {
     System.out.println("Matrix Sum = " + sum + "\n");
   }
 
-  public static int[][] multMatrix(int a[][], int b[][]) {// a[m][n], b[n][p]
-    if (a.length == 0)
-      return new int[0][0];
-    if (a[0].length != b.length)
-      return null;
-
-    int n = a[0].length;
-    int m = a.length;
-    int p = b[0].length;
-    int ans[][] = new int[m][p];
-
-    for (int i = 0; i < m; i++) {
-      for (int j = 0; j < p; j++) {
-        for (int k = 0; k < n; k++) {
-          ans[i][j] += a[i][k] * b[k][j];
+  public static int[] multMatrix() {
+    synchronized (lock) {
+      for (; a < heightA;) {
+        for (; b < widthB;) {
+          for (; c < widthA;) {
+            c++;
+            return new int[] { a, b, c - 1 };
+          }
+          c = 0;
+          b++;
         }
+        b=0;
+        a++;
       }
     }
-    return ans;
+    return null;
   }
 
   public static class MyThread implements Runnable {
-    public MyThread() {
+    private int id;
+
+    public MyThread(int i) {
+      id = i;
     }
 
     public void run() {
-        long startTime = System.currentTimeMillis();
-        long endTime = System.currentTimeMillis();
-        long timeDiff = endTime - startTime;
-        System.out.println("Thread#" + id + " Execution Time: " + timeDiff + "ms");
+      long startTime = System.currentTimeMillis();
+      int[] numbers;
+      while ((numbers = multMatrix()) != null) {
+        synchronized (lock) {
+          ans[numbers[0]][numbers[1]] += matrixA[numbers[0]][numbers[2]] * matrixB[numbers[2]][numbers[1]];
+        }
+      }
+      long endTime = System.currentTimeMillis();
+      long timeDiff = endTime - startTime;
+      System.out.println("Thread#" + id + " Execution Time: " + timeDiff + "ms");
     }
-}
+  }
 }
