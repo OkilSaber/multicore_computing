@@ -5,41 +5,79 @@ import java.util.concurrent.Executors;
 public class MatmultD {
   private static Scanner sc = new Scanner(System.in);
   private static int nbThreads;
+  private static int nbThreadsWorking;
+  private static float tmpLinesPerThread;
+  private static double linesPerThread;
   private static Matrix ans;
   private static Matrix matrixA;
   private static Matrix matrixB;
-  private static int a = 0;
-  private static int b = 0;
-  private static int c = 0;
-  private static Object lock = new Object();
 
   public static void main(String[] args) {
+    // Check args
     if (args.length == 1) {
       nbThreads = Integer.valueOf(args[0]);
     } else {
       nbThreads = 1;
     }
+
+    // Creates matrices
     matrixA = new Matrix();
     matrixB = new Matrix();
+
+    // Start program
     long startTime = System.currentTimeMillis();
-    long endTime;
+
+    // Check if matrices are correct
     if (matrixA.height == 0) {
-      endTime = System.currentTimeMillis();
+      long endTime = System.currentTimeMillis();
       System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
       return;
     }
     if (matrixA.width != matrixB.height)
       return;
+
+    // Init final matrix
     ans = new Matrix(matrixB.width, matrixA.height);
-    ExecutorService es = Executors.newCachedThreadPool();
-    for (int i = 0; i < nbThreads; i++) {
-      es.execute(new MyThread(i));
+
+    tmpLinesPerThread = matrixA.height / nbThreads;
+
+    if (tmpLinesPerThread < 1) {
+      linesPerThread = 1;
+      nbThreadsWorking = matrixA.height;
+    } else if (matrixA.height % nbThreads != 0) {
+      linesPerThread = Math.floor(tmpLinesPerThread);
+      nbThreadsWorking = nbThreads;
+    } else {
+      linesPerThread = tmpLinesPerThread;
+      nbThreadsWorking = nbThreads;
     }
+    // Start Thread pool
+    ExecutorService es = Executors.newCachedThreadPool();
+    int rest = matrixA.width % nbThreadsWorking;
+    // Execute threads
+    for (int i = 0; i < nbThreads; i++) {
+      if (i < nbThreadsWorking) {
+        if (i + 1 == nbThreadsWorking && rest != 0) {
+          es.execute(new MyThread(i, (int) linesPerThread, rest));
+        } else {
+          es.execute(new MyThread(i, (int) linesPerThread, 0));
+        }
+      } else {
+        es.execute(new MyThread(i));
+      }
+    }
+
+    // No more threads are expected to run
     es.shutdown();
+
+    // Wait for all threads to finish
     while (!es.isTerminated()) {
     }
-    endTime = System.currentTimeMillis();
 
+    // Stop chrono
+    long endTime = System.currentTimeMillis();
+
+    // Print
     printMatrix(ans.matrix);
     System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
   }
@@ -70,24 +108,6 @@ public class MatmultD {
     System.out.println("Matrix Sum = " + sum + "\n");
   }
 
-  public static int[] multMatrix() {
-    synchronized (lock) {
-      for (; a < matrixA.height;) {
-        for (; b < matrixB.width;) {
-          for (; c < matrixA.width;) {
-            c++;
-            return new int[] { a, b, c - 1 };
-          }
-          c = 0;
-          b++;
-        }
-        b = 0;
-        a++;
-      }
-    }
-    return null;
-  }
-
   public static class Matrix {
     public int height;
     public int width;
@@ -112,18 +132,45 @@ public class MatmultD {
 
   public static class MyThread implements Runnable {
     private int id;
+    private int nbLines = 0;
+    private boolean runnable = false;
+    private int more = 0;
 
-    public MyThread(int i) {
-      id = i;
+    public MyThread(int id, int lines, int more) {
+      this.id = id;
+      nbLines = lines;
+      this.runnable = true;
+      this.more = more;
+    }
+
+    public MyThread(int id, int lines) {
+      this.id = id;
+      nbLines = lines;
+      this.runnable = true;
+    }
+
+    public MyThread(int id) {
+      this.id = id;
+      this.runnable = false;
     }
 
     public void run() {
       long startTime = System.currentTimeMillis();
-      int[] numbers;
-      while ((numbers = multMatrix()) != null) {
-        synchronized (lock) {
-          ans.matrix[numbers[0]][numbers[1]] += matrixA.getNumber(numbers[0], numbers[2])
-              * matrixB.getNumber(numbers[2], numbers[1]);
+      if (this.runnable) {
+        int linesDone = 0;
+
+        for (int i = id; linesDone < (nbLines + more);) {
+          for (int j = 0; j < matrixB.width; j++) {
+            for (int x = 0; x < matrixB.width; x++) {
+              ans.matrix[i][j] += matrixA.getNumber(i, x) * matrixB.getNumber(x, j);
+            }
+          }
+          linesDone++;
+          if (linesDone < nbLines) {
+            i += nbThreadsWorking;
+          } else {
+            i++;
+          }
         }
       }
       long endTime = System.currentTimeMillis();
