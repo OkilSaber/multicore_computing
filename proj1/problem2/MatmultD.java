@@ -40,20 +40,21 @@ public class MatmultD {
     ans = new Matrix(matrixB.width, matrixA.height);
 
     tmpLinesPerThread = matrixA.height / nbThreads;
+    int rest = matrixA.height % nbThreads;
 
     if (tmpLinesPerThread < 1) {
       linesPerThread = 1;
       nbThreadsWorking = matrixA.height;
-    } else if (matrixA.height % nbThreads != 0) {
+    } else if (rest != 0) {
       linesPerThread = Math.floor(tmpLinesPerThread);
       nbThreadsWorking = nbThreads;
     } else {
       linesPerThread = tmpLinesPerThread;
       nbThreadsWorking = nbThreads;
     }
+    rest = matrixA.height %nbThreadsWorking;
     // Start Thread pool
     ExecutorService es = Executors.newCachedThreadPool();
-    int rest = matrixA.width % nbThreadsWorking;
     // Execute threads
     for (int i = 0; i < nbThreads; i++) {
       if (i < nbThreadsWorking) {
