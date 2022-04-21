@@ -60,7 +60,7 @@ public class MatmultD {
         if (i + 1 == nbThreadsWorking && rest != 0) {
           es.execute(new MyThread(i, (int) linesPerThread, rest));
         } else {
-          es.execute(new MyThread(i, (int) linesPerThread, 0));
+          es.execute(new MyThread(i, (int) linesPerThread));
         }
       } else {
         es.execute(new MyThread(i));
@@ -78,7 +78,7 @@ public class MatmultD {
     long endTime = System.currentTimeMillis();
 
     // Print
-    printMatrix(ans.matrix);
+    //    printMatrix(ans.matrix);
     System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
   }
 
@@ -134,19 +134,20 @@ public class MatmultD {
     private int id;
     private int nbLines = 0;
     private boolean runnable = false;
-    private int more = 0;
+    private int start = 0;
 
     public MyThread(int id, int lines, int more) {
       this.id = id;
-      nbLines = lines;
+      nbLines = lines + more;
       this.runnable = true;
-      this.more = more;
+      this.start = id * lines;
     }
 
     public MyThread(int id, int lines) {
       this.id = id;
       nbLines = lines;
       this.runnable = true;
+      this.start = id * lines;
     }
 
     public MyThread(int id) {
@@ -159,18 +160,13 @@ public class MatmultD {
       if (this.runnable) {
         int linesDone = 0;
 
-        for (int i = id; linesDone < (nbLines + more);) {
+        for (int i = start; linesDone < nbLines; i++) {
           for (int j = 0; j < matrixB.width; j++) {
             for (int x = 0; x < matrixB.width; x++) {
               ans.matrix[i][j] += matrixA.getNumber(i, x) * matrixB.getNumber(x, j);
             }
           }
           linesDone++;
-          if (linesDone < nbLines) {
-            i += nbThreadsWorking;
-          } else {
-            i++;
-          }
         }
       }
       long endTime = System.currentTimeMillis();
