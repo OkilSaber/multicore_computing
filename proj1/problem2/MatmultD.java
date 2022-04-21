@@ -52,7 +52,7 @@ public class MatmultD {
       linesPerThread = tmpLinesPerThread;
       nbThreadsWorking = nbThreads;
     }
-    rest = matrixA.height %nbThreadsWorking;
+    rest = matrixA.height % nbThreadsWorking;
     // Start Thread pool
     ExecutorService es = Executors.newCachedThreadPool();
     // Execute threads
@@ -79,8 +79,8 @@ public class MatmultD {
     long endTime = System.currentTimeMillis();
 
     // Print
-    //    printMatrix(ans.matrix);
-    System.out.printf("[nbThreads]:%2d , [Time]:%4d ms\n", nbThreads, endTime - startTime);
+    printMatrix(ans.matrix);
+    System.out.printf("[Number of threads]:%2d , [Process Time]:%4d ms\n", nbThreads, endTime - startTime);
   }
 
   public static int[][] readMatrix(int rows, int cols) {
