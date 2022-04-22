@@ -16,7 +16,7 @@ public class pc_static_block {
         }
         long startTime = System.currentTimeMillis();
         ExecutorService es = Executors.newCachedThreadPool();
-        for (int i = 1; i <= NUM_THREADS; i++) {
+        for (int i = 0; i <= NUM_THREADS; i++) {
             es.execute(new MyThread(i));
         }
         es.shutdown();
@@ -45,8 +45,8 @@ public class pc_static_block {
 
         public MyThread(int id) {
             this.id = id;
-            this.start = BLOCKS_RANGE * id - BLOCKS_RANGE;
-            this.end = BLOCKS_RANGE * id - 1;
+            start = BLOCKS_RANGE * id;
+            end = start + BLOCKS_RANGE;
         }
 
         public void run() {
