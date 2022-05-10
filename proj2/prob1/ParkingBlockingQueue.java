@@ -13,11 +13,7 @@ class ParkingGarage {
   }
 
   public void enter(Car car) {
-    while (true) {
-      if (queue.offer(car)) {
-        return;
-      }
-    }
+    while (!queue.offer(car));
   }
 
   public void leave(Car car) {
