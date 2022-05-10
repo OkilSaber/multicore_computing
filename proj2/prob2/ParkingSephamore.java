@@ -2,7 +2,7 @@ import java.util.concurrent.Semaphore;
 
 class ParkingGarage {
   private int places;
-  Semaphore sem;
+  private Semaphore sem;
 
   public ParkingGarage(int places) {
     if (places < 0)
