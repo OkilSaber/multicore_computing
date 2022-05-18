@@ -15,20 +15,14 @@ class ParkingGarage {
     try {
       this.sem.acquire();
       this.places--;
-      this.sem.release();
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
   }
 
   public void leave() {
-    try {
-      this.sem.acquire();
-      this.places++;
-      this.sem.release();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    this.places++;
+    this.sem.release();
   }
 }
 
