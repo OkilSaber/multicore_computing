@@ -45,13 +45,15 @@ int main(int argc, char **argv)
         printf("Invalid mode.\n");
         return (-1);
     }
-    double start_time = omp_get_wtime();
-    #pragma omp parallel for reduction(+:counter)
+    double start_time, end_time;
+    start_time = omp_get_wtime();
+#pragma omp parallel for reduction(+ \
+                                   : counter)
     for (int i = 1; i <= 200000; i++)
         if (check_if_prime(i))
             counter++;
-    double end_time = omp_get_wtime();
+    end_time = omp_get_wtime();
     double total_time = end_time - start_time;
-    printf("Total execution time: %.f\n", total_time * 1000);
-    printf("Counter: %d\n", counter);
+    printf("Total execution time: %.fms\n", total_time * 1000);
+    printf("Found: %d prime number\n", counter);
 }
