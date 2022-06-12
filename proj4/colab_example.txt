@@ -1,0 +1,37 @@
+
+************ How to run CUDA C/C++ code in Google Colab ****************
+
+STEP 1) Login into Google Colab
+
+STEP 2) Create a new note (In menu: [FILE] -> [New notebook])
+
+STEP 3) Select GPU (In menu: [Runtime] -> [Change runtime type] -> select HW accelerator:GPU -> Save)
+
+STEP 4) Type following code and press "play button"
+%%writefile test_cuda.cu
+#include <stdio.h>
+#include <assert.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
+
+__global__ void test(){
+    printf("Hi Cuda World\n");
+}
+
+int main( int argc, char** argv )
+{
+    test<<<1,8>>>();
+    cudaDeviceSynchronize();
+    return 0;
+}
+
+STEP 5) Type "!nvcc test_cuda.cu" to compile the CUDA source code.
+STEP 6) Type "!./a.out" to execute the resulting executable file.
+
+************ How to download a file from Google Colab ****************
+
+STEP 7> Type "!./a.out > result.txt" to generate resulting text file.
+        result.txt will be generated.
+        You may download result.txt file into your local PC drive by
+        cliking "folder"-shape icon in the left-hand side and selecting
+        the file "result.txt" for downloading the file.
